@@ -1,25 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import styled from "styled-components";
 
-function App() {
+import { GlobalStyle } from "./global/styles";
+
+import Routes from "./routes/routes";
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container>
+      <GlobalStyle />
+      <Routes />
+    </Container>
   );
 }
 
-export default App;
+const Container = styled.div`
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 60px 210px;
+`;
