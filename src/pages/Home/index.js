@@ -1,54 +1,144 @@
+import { useContext, useEffect, useState } from "react";
+
 import { Header } from "../../components/Header";
 import { Input } from "../../components/input";
 import { MainButton } from "../../components/MainButton";
 
-import { Code, Container, FormContainer, Link, LinkContainer, LinkDeleteButton, LinksContainer, Views } from "./styles";
+import { api } from "../../services/api";
+
+import { UserContext } from "../../context/UserContext";
+
+import {
+  Code,
+  Container,
+  FormContainer,
+  Link,
+  LinkContainer,
+  LinkDeleteButton,
+  LinksContainer,
+  Views,
+} from "./styles";
 
 import TrashCanSVG from "../../assets/trash.svg";
-
-let mock = [
-    {link: "https://github.com", code: "e4787", views: 271},
-    {link: "https://driven.com.br", code: "f9090", views: 571},
-    {link: "https://google.com", code: "a7823", views: 71},
-];
+import { ThreeDots } from "react-loader-spinner";
 
 export function Home() {
-    return (
-        <Container>
-            <Header />
+  const { userData } = useContext(UserContext);
 
-            <FormContainer>
-                <Input placeholder="Links que cabem no bolso"/>
+  const [userUrls, setUserUrls] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [url, setUrl] = useState("");
+  const [isLoadingButton, setIsLoadingButton] = useState(false);
 
-                <MainButton text="Encurtar link"/>
-            </FormContainer>
+  async function getUserUrls() {
+    try {
+      const userUrls = await api.get("/users/me", {
+        headers: {
+          Authorization: `Bearer ${userData.token}`,
+        },
+      });
+      console.log(userUrls);
+      setUserUrls(userUrls.data.shortenedUrls);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-            <LinksContainer>
-                {
-                    mock.map((link) => {
-                        return (
-                            <LinkContainer key={link.code}>
-                                <Link>
-                                    {link.link}
-                                </Link>
+  async function handleCreateUrl() {
+    console.log(url);
+    setIsLoadingButton(true);
+    try {
+      await api.post(
+        "/urls/shorten",
+        {
+          url,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
+          },
+        }
+      );
 
-                                <Code>
-                                    {link.code}
-                                </Code>
+      setIsLoadingButton(false);
+      getUserUrls();
+    } catch (error) {
+      console.log(error);
+      setIsLoadingButton(false);
+    }
+  }
 
-                                <Views>
-                                   Quantidade de visitantes: {link.views}
-                                </Views>
+  async function handleDeleteUrl(id) {
+    try {
+      await api.delete(`/urls/${id}`, {
+        headers: {
+          Authorization: `Bearer ${userData.token}`,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-                                <LinkDeleteButton> 
-                                    <img src={TrashCanSVG} alt="trash can"/>
-                                </LinkDeleteButton>
-                            </LinkContainer>
+  useEffect(() => {
+    getUserUrls();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-                        )
-                    })
-                }
-            </LinksContainer>
-        </Container>
-    )
+  return (
+    <Container>
+      <Header />
+
+      <FormContainer>
+        <Input
+          placeholder="Links que cabem no bolso"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          disabled={isLoadingButton}
+          type={"text"}
+        />
+
+        <MainButton
+          text="Encurtar link"
+          disabled={isLoadingButton}
+          onClick={handleCreateUrl}
+        />
+      </FormContainer>
+
+      {isLoading ? (
+        <LinksContainer>
+          <ThreeDots
+            height="40"
+            width="40"
+            radius="9"
+            color="#5D9040"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClassName=""
+            visible={true}
+          />
+        </LinksContainer>
+      ) : (
+        <LinksContainer>
+          {userUrls !== undefined &&
+            userUrls.map((link) => {
+              return (
+                <LinkContainer key={link.id}>
+                  <Link>{link.url}</Link>
+
+                  <Code>{link.shortUrl}</Code>
+
+                  <Views>Quantidade de visitantes: {link.visitCount}</Views>
+
+                  <LinkDeleteButton onClick={() => handleDeleteUrl(link.id)}>
+                    <img src={TrashCanSVG} alt="trash can" />
+                  </LinkDeleteButton>
+                </LinkContainer>
+              );
+            })}
+        </LinksContainer>
+      )}
+    </Container>
+  );
 }

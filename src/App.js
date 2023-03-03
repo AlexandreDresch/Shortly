@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+import { UserProvider } from "./context/UserContext";
+
 import { GlobalStyle } from "./global/styles";
 
 import Routes from "./routes/routes";
@@ -7,8 +9,10 @@ import Routes from "./routes/routes";
 export default function App() {
   return (
     <Container>
-      <GlobalStyle />
-      <Routes />
+      <UserProvider>
+        <GlobalStyle />
+        <Routes />
+      </UserProvider>
     </Container>
   );
 }

@@ -1,9 +1,24 @@
-import { ButtonContainer } from "./styles";
+import { ThreeDots } from "react-loader-spinner";
 
-export function MainButton ({text}) {
-    return (
-        <ButtonContainer type="submit">
-            {text}
-        </ButtonContainer>
-    )
+import { ButtonContainer, Text } from "./styles";
+
+export function MainButton({ text, disabled, onClick }) {
+  return (
+    <ButtonContainer type="submit" onClick={onClick}>
+      {disabled ? (
+        <ThreeDots
+          height="40"
+          width="40"
+          radius="9"
+          color="#FFFFFF"
+          ariaLabel="three-dots-loading"
+          wrapperStyle={{}}
+          wrapperClassName=""
+          visible={true}
+        />
+      ) : (
+        <Text>{text}</Text>
+      )}
+    </ButtonContainer>
+  );
 }
